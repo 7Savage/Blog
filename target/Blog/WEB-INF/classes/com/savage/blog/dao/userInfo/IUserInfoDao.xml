@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.savage.blog.dao.userInfo.IUserInfoDao">
+    <!--建立sql查询字段与实体属性的映射关系-->
+    <resultMap id="UserInfoMap" type="com.savage.blog.view.UserInfo">
+        <id column="id" property="id"></id>
+        <result column="login_name" property="loginName"/>
+        <result column="password" property="password"/>
+    </resultMap>
+
+    <resultMap id="MeMap" type="com.savage.blog.view.Me">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"/>
+        <result column="gender" property="gender"/>
+        <result column="hobby" property="hobby"/>
+        <result column="country" property="country"/>
+    </resultMap>
+
+    <!--校验用户-->
+    <select id="checkUser" resultMap="UserInfoMap">
+        SELECT *
+        FROM user_info
+        WHERE 1=1
+        <if test="loginName!=null and loginName!= ''">AND login_name=#{loginName}</if>
+        <if test="password!=null and password!=''">AND password=#{password}</if>
+    </select>
+
+    <select id="aboutMe" resultMap="MeMap">
+        SELECT *
+        FROM about_me
+    </select>
+
+    <select id="link" resultType="com.savage.blog.view.Link">
+        SELECT *
+        FROM link
+    </select>
+
+    <!--插入一条数据-->
+    <insert id="insert">
+        INSERT INTO link
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null and name!=''">name,</if>
+            <if test="address!=null and address!=''">address,</if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">#{name},</if>
+            <if test="address!=null">#{address},</if>
+        </trim>
+    </insert>
+
+    <!--更新一条数据-->
+    <update id="update">
+        UPDATE link
+        <set>
+            <if test="name!=null and name!=''">name=#{name},</if>
+            <if test="address!=null and address!=''">address=#{address},</if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <!--批量删除数据-->
+    <delete id="delete">
+        DELETE FROM link where id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteComment">
+        DELETE FROM comment where id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

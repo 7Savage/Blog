@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.savage.blog.dao.portalInfo.IPortalInfoDao">
+
+    <!--建立sql查询字段与实体属性的映射关系-->
+    <resultMap id="ArticleInfoMap" type="com.savage.blog.view.ArticleInfo">
+        <id column="id" property="id"></id>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="content_text" property="contentText"/>
+        <result column="cover" property="cover"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+        <result column="type_id" property="typeId"/>
+
+        <result column="name" property="name"/>
+    </resultMap>
+
+    <!--建立sql查询字段与实体属性的映射关系-->
+    <resultMap id="PortalInfoMap" type="com.savage.blog.view.PortalInfo">
+        <id column="id" property="id"></id>
+        <result column="login_name" property="loginName"/>
+        <result column="password" property="password"/>
+    </resultMap>
+
+    <resultMap id="StarMap" type="com.savage.blog.view.Star">
+        <id column="id" property="id"></id>
+        <result column="article_id" property="articleId"/>
+        <result column="portal_id" property="portalId"/>
+    </resultMap>
+    <delete id="deleteStar">
+        DELETE FROM star
+        WHERE article_id=#{articleId}
+        AND portal_id=#{portalId}
+    </delete>
+
+
+    <!--校验用户-->
+    <select id="checkUser" resultMap="PortalInfoMap">
+        SELECT *
+        FROM guest_info
+        WHERE 1=1
+        <if test="loginName!=null and loginName!= ''">AND login_name=#{loginName}</if>
+        <if test="password!=null and password!=''">AND password=#{password}</if>
+    </select>
+
+    <!--校验用户-->
+    <select id="checkUser2" resultMap="PortalInfoMap">
+        SELECT *
+        FROM guest_info
+        WHERE 1=1
+        <if test="registerName!=null and registerName!= ''">AND login_name=#{registerName}</if>
+    </select>
+
+    <!--校验收藏-->
+    <select id="checkStar" resultMap="StarMap">
+        SELECT *
+        FROM star
+        WHERE 1=1
+        <if test="articleId!=null and articleId!= ''">AND article_id=#{articleId}</if>
+        <if test="portalId!=null and portalId!= ''">AND portal_id=#{portalId}</if>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO guest_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="registerName!=null and registerName!= ''">login_name,</if>
+            <if test="password!=null and password!=''">password,</if>
+
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            <if test="registerName!=null and registerName!= ''">#{registerName},</if>
+            <if test="password!=null and password!=''">#{password},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertStar">
+        INSERT INTO star
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="articleId!=null and articleId!= ''">article_id,</if>
+            <if test="portalId!=null and portalId!= ''">portal_id</if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            <if test="articleId!=null and articleId!= ''">#{articleId},</if>
+            <if test="portalId!=null and portalId!= ''">#{portalId},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertComment">
+        INSERT INTO comment(content) values (#{content})
+    </insert>
+
+    <!--查询所有文章-->
+    <select id="star" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti,
+	        star s
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+	    AND s.article_id=ai.id
+	    AND s.portal_id=#{id}
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+    <select id="selectComment" resultType="com.savage.blog.view.Comment">
+        SELECT * FROM comment;
+    </select>
+</mapper>

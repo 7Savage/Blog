@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.savage.blog.dao.articleInfo.IArticleInfoDao">
+    <!--建立sql查询字段与实体属性的映射关系-->
+    <resultMap id="ArticleInfoMap" type="com.savage.blog.view.ArticleInfo">
+        <id column="id" property="id"></id>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="content_text" property="contentText"/>
+        <result column="cover" property="cover"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+        <result column="type_id" property="typeId"/>
+
+        <result column="name" property="name"/>
+    </resultMap>
+
+    <!--查询所有文章-->
+    <select id="listNormal" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+
+    <!--查询所有文章-->
+    <select id="listRecommend" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+        ORDER BY
+	    ai.view_count DESC
+	    LIMIT 0,10
+    </select>
+
+    <!--查询所有回收站文章-->
+    <select id="listRecycle" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND status = '0'
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+
+    <!--根据id查询文章-->
+    <select id="selectById" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ai.type_id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        ai.content,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+	    AND ai.id=#{id}
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+
+    <!--根据typeId查询文章个数-->
+    <select id="selectByTypeId" resultType="int">
+        SELECT count(*)
+        FROM article_info
+        WHERE type_id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND status='1'
+    </select>
+
+    <!--插入文章-->
+    <insert id="insert">
+        INSERT INTO article_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="typeId!=null and typeId!=''">type_id,</if>
+            <if test="title!=null and title!=''">title,</if>
+            <if test="content!=null and content!=''">content,</if>
+            <if test="contentText!=null and contentText!=''">content_text,</if>
+            <if test="cover!=null and cover!=''">cover,</if>
+            <if test="viewCount!=null and viewCount!=''">view_count,</if>
+            <if test="updateTime!=null">update_time,</if>
+            <if test="status!=null and status!=''">status,</if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            <if test="typeId!=null and typeId!=''">#{typeId},</if>
+            <if test="title!=null and title!=''">#{title},</if>
+            <if test="content!=null and content!=''">#{content},</if>
+            <if test="contentText!=null and contentText!=''">#{contentText},</if>
+            <if test="cover!=null and cover!=''">#{cover},</if>
+            <if test="viewCount!=null and viewCount!=''">#{viewCount},</if>
+            <if test="updateTime!=null">#{updateTime},</if>
+            <if test="status!=null and status!=''">#{status},</if>
+        </trim>
+    </insert>
+
+    <!--更新文章-->
+    <update id="update">
+        UPDATE article_info
+        <set>
+            <if test="typeId!=null and typeId!=''">type_id=#{typeId},</if>
+            <if test="title!=null and title!=''">title=#{title},</if>
+            <if test="content!=null and content!=''">content=#{content},</if>
+            <if test="contentText!=null and contentText!=''">content_text=#{contentText},</if>
+            <if test="cover!=null and cover!=''">cover=#{cover},</if>
+            <if test="viewCount!=null and viewCount!=''">view_count=#{viewCount},</if>
+            <if test="updateTime!=null and updateTime!=''">update_time=#{updateTime},</if>
+            <if test="status!=null and status!=''">status=#{status},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!--批量回收数据-->
+    <update id="recycle">
+        UPDATE article_info
+        SET status=0
+        WHERE id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <!--批量彻底删除-->
+    <delete id="delete">
+        DELETE FROM article_info
+        WHERE id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!--根据typeId批量彻底删除-->
+    <delete id="deleteByTypeId">
+        DELETE FROM article_info
+        WHERE type_id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND status='0'
+    </delete>
+
+    <!--批量恢复数据-->
+    <update id="resume">
+        UPDATE article_info
+        SET status=1
+        WHERE id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <!--根据TypeId查询文章-->
+    <select id="listByTypeId" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+	    AND type_id=#{typeId}
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+
+    <!--根据关键字查询文章-->
+    <select id="listByKeyWord" resultMap="ArticleInfoMap">
+        SELECT
+	        ai.id,
+	        ti.name,
+	        ai.title,
+	        ai.cover,
+	        ai.content_text,
+	        DATE_FORMAT( ai.update_time, '%Y-%m-%d' ) AS update_time,
+	        ai.view_count
+        FROM
+	        article_info ai,
+	        type_info ti
+        WHERE
+	        ai.type_id = ti.id
+	    AND STATUS = '1'
+        <if test="keyWord!=null and keyWord!=''">AND ai.title LIKE #{keyWord}</if>
+        ORDER BY
+	    ai.update_time DESC
+    </select>
+</mapper>

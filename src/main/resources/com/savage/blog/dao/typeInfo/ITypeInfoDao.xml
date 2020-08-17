@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.savage.blog.dao.typeInfo.ITypeInfoDao">
+    <!--建立sql查询字段与实体属性的映射关系-->
+    <resultMap id="TypeInfoMap" type="com.savage.blog.view.TypeInfo">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"/>
+        <result column="sort" property="sort"/>
+    </resultMap>
+
+    <!--校验用户-->
+    <select id="list" resultMap="TypeInfoMap">
+        SELECT *
+        FROM type_info
+        ORDER BY sort
+    </select>
+
+    <!--插入一条数据-->
+    <insert id="insert">
+        INSERT INTO type_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sort!=null and sort!=''">sort,</if>
+            <if test="name!=null and name!=''">name,</if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            <if test="sort!=null">#{sort},</if>
+            <if test="name!=null">#{name},</if>
+        </trim>
+    </insert>
+
+    <!--更新一条数据-->
+    <update id="update">
+        UPDATE type_info
+        <set>
+            <if test="sort!=null and sort!=''">sort=#{sort},</if>
+            <if test="name!=null and name!=''">name=#{name},</if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <!--批量删除数据-->
+    <delete id="delete">
+        DELETE FROM type_info where id IN
+        <foreach collection="idArr" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>
